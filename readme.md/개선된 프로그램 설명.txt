@@ -1,0 +1,300 @@
+// login form
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace OopProject
+{
+    public partial class LoginForm : Form
+    {
+        public LoginForm()
+        {
+            InitializeComponent();
+        }
+
+        private void btn_login_Click(object sender, EventArgs e)
+        {
+            if(tb_id.Text == "" || tb_password.Text == "")
+            {
+                MessageBox.Show("아이디와 비밀번호를 입력하세요");
+            }
+            else
+            {
+                if(tb_id.Text == "user626" && tb_password.Text == "1234")
+                {
+                    StateForm newStateForm = new StateForm();
+                    newStateForm.ShowDialog();
+                }
+                else
+                {
+                    tb_id.Text = "";
+                    tb_password.Text = "";
+                    MessageBox.Show("아이디와 비밀번호를 확인해주세요");
+                }
+            }
+        }
+        private bool EmptyCheck()
+        {
+            if(String.IsNullOrEmpty(tb_id.Text))
+            {
+                labelMsg.Text = "사용자명을 입력해 주세요";
+                tb_id.Focus();
+                return false;
+            }
+            else if (String.IsNullOrEmpty(tb_password.Text))
+            {
+                labelMsg.Text = "비밀번호를 입력해 주새요";
+                tb_password.Focus();
+                return false;
+            }
+            return true;
+        }
+
+        private void tb_password_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Enter)
+            {
+                btn_login_Click(sender, e);
+                btn_login.Select();
+            }
+        }
+    }
+}
+
+// stock form
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.IO.IsolatedStorage;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using MySql.Data.MySqlClient;
+
+namespace OopProject
+{
+    public partial class StateForm : Form
+    {
+        MySqlConnection connection = new MySqlConnection("Server=localhost;DataBase=stock;Uid=root;Pwd=64081484;");
+        public StateForm()
+        {
+            InitializeComponent();
+        }
+
+        private void Button2_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.RowCount == 0)
+            {
+                MessageBox.Show("수정할 재고를 먼저 선택하세요");
+                return;
+            }
+            else
+            {
+                UpdateForm newUpdateForm = new UpdateForm();
+                newUpdateForm.ShowDialog();
+            }
+        }
+
+        private void btn_delete_Click(object sender, EventArgs e)
+        {
+            if(dataGridView1.RowCount == 0)
+            {
+                MessageBox.Show("삭제할 재고를 먼저 선택하세요");
+                return;
+            }
+            else
+            {
+                string Query = "delete from stock where name = '" + tb_name + "';";
+                MySqlCommand SelectCommand = new MySqlCommand(Query, connection);
+
+                MySqlDataReader myReader;
+
+                try
+                {
+                    connection.Open();
+
+                    myReader = SelectCommand.ExecuteReader();
+                    MessageBox.Show("재고가 삭제되었습니다");
+                    while (myReader.Read())
+                    {
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+        private void btn_add_Click(object sender, EventArgs e)
+        {
+            InsertForm newInsertForm = new InsertForm();
+            newInsertForm.ShowDialog();
+        }
+
+        private void btn_search_Click(object sender, EventArgs e)
+        {
+            dataGridView1.Rows.Clear();
+            if(tb_name.Text == "")
+            {
+                string selectQuery = "SELECT * from stock";
+                connection.Open();
+                MySqlCommand cmd = new MySqlCommand(selectQuery, connection);
+                MySqlDataReader table = cmd.ExecuteReader();
+
+                while(table.Read())
+                {
+                    dataGridView1.Rows.Add(table["name"], table["number"]);
+                }
+                connection.Close();
+            }
+            else
+            {
+                string selectQuery = "SELECT * from stock where name = '" + tb_name.Text + "'";
+                connection.Open();
+                MySqlCommand cmd = new MySqlCommand(selectQuery, connection);
+                MySqlDataReader table = cmd.ExecuteReader();
+
+                ArrayList Test = new ArrayList();
+                while (table.Read())
+                {
+                    Test.Add(table["name"]);
+                    dataGridView1.Rows.Add(table["name"], table["number"]);
+                }
+
+                tb_number.Text = Test[1].ToString();
+
+                connection.Close();
+            }
+        }
+    }
+}
+
+// update form
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using MySql.Data.MySqlClient;
+
+namespace OopProject
+{
+    public partial class UpdateForm : Form
+    {
+        MySqlConnection connection = new MySqlConnection("Server=localhost;DataBase=stock;Uid=root;Pwd=64081484;");
+        public UpdateForm()
+        {
+            InitializeComponent();
+        }
+
+        private void btn_ok_Click(object sender, EventArgs e)
+        {
+            string Query = "update stock set name = '" + tb_name.Text + "', number = '" + tb_number.Text + "';";
+
+            MySqlCommand selectCommand = new MySqlCommand(Query, connection);
+
+            MySqlDataReader myReader;
+            try
+            {
+                connection.Open();
+
+                myReader = selectCommand.ExecuteReader();
+                MessageBox.Show("잘 수정되었습니다");
+
+                while (myReader.Read())
+                {
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void btn_cancel_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+    }
+}
+
+// insert form
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using MySql.Data.MySqlClient;
+
+namespace OopProject
+{
+    public partial class InsertForm : Form
+    {
+        MySqlConnection connection = new MySqlConnection("Server=localhost;DataBase=stock;Uid=root;Pwd=64081484;");
+        public InsertForm()
+        {
+            InitializeComponent();
+        }
+
+        private void btn_ok_Click(object sender, EventArgs e)
+        {
+            string Query = " insert into stock (name, number) " + "value ('" + tb_name + "', '" + tb_number + "');";
+
+            MySqlCommand SelectCommand = new MySqlCommand(Query, connection);
+
+            MySqlDataReader myReader;
+
+            try
+            {
+                connection.Open();
+
+                myReader = SelectCommand.ExecuteReader();
+                MessageBox.Show("재고가 리스트에 저장되었습니다");
+
+                while (myReader.Read())
+                {
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void btn_cancel_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+    }
+}
